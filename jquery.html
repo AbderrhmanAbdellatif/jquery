@@ -70,6 +70,10 @@
 .liked:hover span {
   color: #fefefe;
 }
+.button, input {
+    margin: auto;
+    overflow: visible;
+}
 </style>
 
 <body>
@@ -122,9 +126,19 @@
          });
           $('body')
               .on('click', ".button-like", function (event) {
-
+          
        $(this).toggleClass("liked");
+	   
     })
+          
+        $('body')
+              .on('click', ".comment", function (event) {
+          
+       $(this).parent().append('<p><input></p>')
+	   
+    })
+            
+		  
 
 	 });
 
