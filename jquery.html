@@ -1,148 +1,113 @@
- <!DOCTYPE>
- <html>
- <title> jquery </title>
-<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NY Times News with Vue.js</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css">
+    <!-- Fancybox CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" />
+</head>
+<body>
 
+<div id="app">
+    <section class="container mt-5">
+        <div class="row">
+            <div class="card col-md-3" v-for="item in newsItems">
+                <div class="card-body">
+                    <a :href="getImageUrl(item)" data-fancybox="gallery">
+                        <img class="card-img-top" :src="getImageUrl(item)" alt="News image">
+                    </a>
+                    <h5 class="card-title">{{ item.title }}</h5>
+                    <p class="card-text">{{ item.abstract }}</p>
+                </div>
+                <div class="card-body d-flex align-items-center justify-content-between">
+                    <a :href="item.short_url" class="card-link" target="_blank" rel="noopener noreferrer">Read More</a>
+                    <div>
+                        <button class="button-like" @click="toggleLike(item)">
+                            <i class="fas" :class="item.liked ? 'fa-heart' : 'fa-heart-broken'"></i>
+                            <span>Like</span>
+                        </button>
+                        <button class="btn btn-success" @click="addComment(item)">
+                            <i class="fas fa-comment"></i>
+                            Add Comment
+                        </button>
+                        <div v-if="item.comment">
+                            <input class="form-control mt-2" v-model="item.commentText" placeholder="Enter comment...">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+<!-- Fancybox JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js"></script>
+<script>
+new Vue({
+    el: '#app',
+    data: {
+        newsItems: []
+    },
+    created() {
+        fetch('https://api.nytimes.com/svc/topstories/v2/science.json?api-key=kp2R8K4qEyG2x16SSMidabp0lv3m6HB6')
+            .then(response => response.json())
+            .then(data => {
+                this.newsItems = data.results.map(item => ({
+                    ...item,
+                    liked: false,
+                    comment: false,
+                    commentText: ''
+                }));
+            });
+    },
+    methods: {
+        toggleLike(item) {
+            item.liked = !item.liked
+        },
+        addComment(item) {
+            item.comment = true;
+        },
+        getImageUrl(item) {
+            return (item.multimedia && item.multimedia.length && item.multimedia[0]) ? item.multimedia[0].url : 'path_to_default_image.jpg';
+        }
+    }
+});
+</script>
 
 <style>
-
-
-    
 .button-like {
-  border: 2px solid #8a8a8a;
-  background-color: transparent;
-  text-decoration: none;
-  padding: 1rem;
-  position: relative;
-  vertical-align: middle;
-  text-align: center;
-  display: inline-block;
-  border-radius: 3rem;
-  color: #8a8a8a;
-  transition: all ease 0.4s;
+    border: 2px solid #8a8a8a;
+    background-color: transparent;
+    text-decoration: none;
+    padding: 1rem;
+    border-radius: 3rem;
+    color: #8a8a8a;
+    transition: all ease 0.4s;
+    display: inline-flex;
+    align-items: center;
 }
 
 .button-like span {
-  margin-left: 0.5rem;
+    margin-left: 0.5rem;
 }
 
-.button-like .fa,
-.button-like span {
-  transition: all ease 0.4s;
-}
-
-.button-like:focus {
-  background-color: transparent;
-}
-.button-like:focus .fa,
-.button-like:focus span {
-  color: #8a8a8a;
-}
 .button-like:hover {
-  border-color: #cc4b37;
-  background-color: transparent;
-}
-.button-like:hover .fa,
-.button-like:hover span {
-  color: #cc4b37;
-}
-.liked {
-  background-color: #cc4b37;
-  border-color: #cc4b37;
-}
-.liked .fa,
-.liked span {
-  color: #fefefe;
-}
-.liked:focus {
-  background-color: #cc4b37;
-}
-.liked:focus .fa,
-.liked:focus span {
-  color: #fefefe;
-}
-.liked:hover {
-  background-color: #cc4b37;
-  border-color: #cc4b37;
-}
-.liked:hover .fa,
-.liked:hover span {
-  color: #fefefe;
-}
-.button, input {
-    margin: auto;
-    padding: revert;
+    border-color: #cc4b37;
+    color: #cc4b37;
 }
 
+.fa-heart {
+    color: #cc4b37;
+}
+
+.fa-heart-broken {
+    color: #8a8a8a;
+}
 </style>
 
-<body>
-    <div class="row" id="news">
-        <!--div class='card'>
-            <div class="card-body">
-                <img class="card-img-top" src="..." alt="">
-                <h5 class="card-title">Card title</h5>
-                <p class="card-text">
-                    Abdurrahman deneme
-                </p>
-            </div>
-        </div-->
-    </div>
-</body> 
-
-<script
-  src="https://code.jquery.com/jquery-3.4.0.min.js"
-  integrity="sha256-BJeo0qm959uMBGb65z40ejJYGSgR7REI4+CW1fNKwOg="
-  crossorigin="anonymous"></script>
-  
-  <script>
-    (function($){
-	 $(function(){
-
-         $.ajax({
-             url: 'https://api.nytimes.com/svc/topstories/v2/science.json?api-key=kp2R8K4qEyG2x16SSMidabp0lv3m6HB6',
-         }).done(function (data) {
-             console.log(data);
-             for (var i = 0; i < data.results.length; i++) {
-                 var newsCard = '<div class="card col-md-3" id="news">\
-            <div class="card-body"> \
-                <img class="card-img-top" src='+ (data.results[i].multimedia[4] != undefined ? data.results[i].multimedia[4].url : "") + ' alt=""> \
-                <h5 class="card-title">'+ data.results[i].title + '</h5>\
-                <p class="card-text">\
-                    '+ data.results[i].abstract + ' \
-                </p> \
-            </div> \
-                 <div class="card-body d-flex align-items-center"> \
-                    <a href="'+ data.results[i].short_url + '" class="card-link">Read More</a> \
-                    <button class="button button-like mx-2">\
-                        <i class="fa fa-heart"></i>\
-                    <span>Like</span>\
-                    </button>\
-                 <button class="btn btn-success comment">Add Comment</button> \
-                 </div> \
-	        </div>';
-                 $("#news").append(newsCard);
-             }
-         });
-          $('body')
-              .on('click', ".button-like", function (event) {
-          
-       $(this).toggleClass("liked");
-	   
-    })
-          
-        $('body')
-              .on('click', ".comment", function (event) {
-          
-       $(this).parent().append('<p><input></p>')
-	   
-    })
-            
-		  
-
-	 });
-
-	})(jQuery);
-  </script>
-</html> 
+</body>
+</html>
