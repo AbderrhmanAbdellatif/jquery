@@ -1,113 +1,107 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NY Times News with Vue.js</title>
+    <title>News Gallery with Fancybox</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css">
+
+    <!-- Font Awesome with updated icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
     <!-- Fancybox CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+    <style>
+        .button-like {
+            border: 2px solid #8a8a8a;
+            background-color: transparent;
+            text-decoration: none;
+            padding: 1rem;
+            border-radius: 3rem;
+            color: #8a8a8a;
+            transition: all ease 0.4s;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .button-like span {
+            margin-left: 0.5rem;
+        }
+
+        .button-like:hover {
+            border-color: #cc4b37;
+            color: #cc4b37;
+        }
+
+        .liked {
+            background-color: #cc4b37;
+            border-color: #cc4b37;
+            color: #fefefe;
+        }
+    </style>
 </head>
+
 <body>
 
-<div id="app">
     <section class="container mt-5">
-        <div class="row">
-            <div class="card col-md-3" v-for="item in newsItems">
-                <div class="card-body">
-                    <a :href="getImageUrl(item)" data-fancybox="gallery">
-                        <img class="card-img-top" :src="getImageUrl(item)" alt="News image">
-                    </a>
-                    <h5 class="card-title">{{ item.title }}</h5>
-                    <p class="card-text">{{ item.abstract }}</p>
-                </div>
-                <div class="card-body d-flex align-items-center justify-content-between">
-                    <a :href="item.short_url" class="card-link" target="_blank" rel="noopener noreferrer">Read More</a>
-                    <div>
-                        <button class="button-like" @click="toggleLike(item)">
-                            <i class="fas" :class="item.liked ? 'fa-heart' : 'fa-heart-broken'"></i>
-                            <span>Like</span>
-                        </button>
-                        <button class="btn btn-success" @click="addComment(item)">
-                            <i class="fas fa-comment"></i>
-                            Add Comment
-                        </button>
-                        <div v-if="item.comment">
-                            <input class="form-control mt-2" v-model="item.commentText" placeholder="Enter comment...">
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <div class="row" id="news"></div>
     </section>
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
-<!-- Fancybox JS -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js"></script>
-<script>
-new Vue({
-    el: '#app',
-    data: {
-        newsItems: []
-    },
-    created() {
-        fetch('https://api.nytimes.com/svc/topstories/v2/science.json?api-key=kp2R8K4qEyG2x16SSMidabp0lv3m6HB6')
-            .then(response => response.json())
-            .then(data => {
-                this.newsItems = data.results.map(item => ({
-                    ...item,
-                    liked: false,
-                    comment: false,
-                    commentText: ''
-                }));
+    <script src="https://code.jquery.com/jquery-3.4.0.min.js"></script>
+
+    <!-- Fancybox JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js"></script>
+
+    <script>
+        (function ($) {
+            $(document).ready(function () {
+                $.ajax({
+                    url: 'https://api.nytimes.com/svc/topstories/v2/science.json?api-key=kp2R8K4qEyG2x16SSMidabp0lv3m6HB6'
+                }).done(function (data) {
+                    data.results.forEach(item => {
+                        const imageUrl = (item.multimedia && item.multimedia.length && item.multimedia[0]) ? item.multimedia[0].url : 'path_to_default_image.jpg';
+
+                        const newsCard = `
+                            <div class="card col-md-3">
+                                <div class="card-body">
+                                    <a href="${imageUrl}" data-fancybox="gallery">
+                                        <img class="card-img-top" src="${imageUrl}" alt="News image">
+                                    </a>
+                                    <h5 class="card-title">${item.title}</h5>
+                                    <p class="card-text">${item.abstract}</p>
+                                </div>
+                                <div class="card-body d-flex align-items-center justify-content-between">
+                                    <a href="${item.short_url}" class="card-link" target="_blank" rel="noopener noreferrer">Read More</a>
+                                    <div>
+                                        <button class="button-like">
+                                            <i class="fas fa-heart"></i>
+                                            <span>Like</span>
+                                        </button>
+                                        <button class="btn btn-success comment">Add Comment</button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        $("#news").append(newsCard);
+                    });
+
+                    // Initialize Fancybox for dynamically generated content
+                    $("[data-fancybox='gallery']").fancybox();
+
+                });
+
+                $('body').on('click', ".button-like", function () {
+                    $(this).toggleClass("liked");
+                });
+
+                $('body').on('click', ".comment", function () {
+                    $(this).parent().append('<p><input class="form-control mt-2" placeholder="Enter comment..."></p>');
+                });
             });
-    },
-    methods: {
-        toggleLike(item) {
-            item.liked = !item.liked
-        },
-        addComment(item) {
-            item.comment = true;
-        },
-        getImageUrl(item) {
-            return (item.multimedia && item.multimedia.length && item.multimedia[0]) ? item.multimedia[0].url : 'path_to_default_image.jpg';
-        }
-    }
-});
-</script>
-
-<style>
-.button-like {
-    border: 2px solid #8a8a8a;
-    background-color: transparent;
-    text-decoration: none;
-    padding: 1rem;
-    border-radius: 3rem;
-    color: #8a8a8a;
-    transition: all ease 0.4s;
-    display: inline-flex;
-    align-items: center;
-}
-
-.button-like span {
-    margin-left: 0.5rem;
-}
-
-.button-like:hover {
-    border-color: #cc4b37;
-    color: #cc4b37;
-}
-
-.fa-heart {
-    color: #cc4b37;
-}
-
-.fa-heart-broken {
-    color: #8a8a8a;
-}
-</style>
-
+        })(jQuery);
+    </script>
 </body>
+
 </html>
